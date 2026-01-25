@@ -19,10 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Mail, RefreshCw, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -32,56 +32,40 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { UserPlus, Trash2 } from "lucide-react";
+import { Invitation } from "better-auth/plugins";
 
-interface OrganizationMembersProps {
+interface OrganizationInvitationsProps {
   organizationId: string;
 }
 
-interface Member {
-  id: string;
-  userId: string;
-  role: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    image?: string | null;
-  };
-}
-
-export function OrganizationMembers({
+export function OrganizationInvitations({
   organizationId,
-}: OrganizationMembersProps) {
-  const [members, setMembers] = useState<Member[]>([]);
+}: OrganizationInvitationsProps) {
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
   const [inviting, setInviting] = useState(false);
-  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
-  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    loadMembers();
+    loadInvitations();
   }, [organizationId]);
 
-  const loadMembers = async () => {
+  const loadInvitations = async () => {
     try {
       setLoading(true);
       setError("");
-      const result = await organization.listMembers({
+      const result = await organization.listInvitations({
         query: { organizationId },
       });
       if (result.data) {
-        const responseData = result.data as { members?: Member[] } | Member[];
-        const membersData = Array.isArray(responseData)
-          ? responseData
-          : (responseData as { members?: Member[] }).members || [];
-        setMembers(membersData);
+        setInvitations(Array.isArray(result.data) ? result.data : []);
       } else if (result.error) {
-        setError(result.error.message || "Failed to load members");
+        setError(result.error.message || "Failed to load invitations");
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -112,7 +96,7 @@ export function OrganizationMembers({
       } else {
         setInviteEmail("");
         setIsDialogOpen(false);
-        loadMembers();
+        loadInvitations();
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -125,21 +109,21 @@ export function OrganizationMembers({
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
-    if (!confirm("Are you sure you want to remove this member?")) return;
-
+  const handleResendInvitation = async (invitationId: string, email: string, role: string) => {
     try {
-      setRemovingId(memberId);
+      setResendingId(invitationId);
       setError("");
-      const result = await organization.removeMember({
-        memberIdOrEmail: memberId,
+      const result = await organization.inviteMember({
         organizationId,
+        email,
+        role: role as "owner" | "admin" | "member",
+        resend: true,
       });
 
       if (result.error) {
-        setError(result.error.message || "Failed to remove member");
+        setError(result.error.message || "Failed to resend invitation");
       } else {
-        loadMembers();
+        loadInvitations();
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -148,24 +132,24 @@ export function OrganizationMembers({
         setError("An unknown error occurred");
       }
     } finally {
-      setRemovingId(null);
+      setResendingId(null);
     }
   };
 
-  const handleUpdateRole = async (memberId: string, newRole: string) => {
+  const handleCancelInvitation = async (invitationId: string) => {
+    if (!confirm("Are you sure you want to cancel this invitation?")) return;
+
     try {
-      setUpdatingRole(memberId);
+      setCancellingId(invitationId);
       setError("");
-      const result = await organization.updateMemberRole({
-        organizationId,
-        memberId,
-        role: newRole as "owner" | "admin" | "member",
+      const result = await organization.cancelInvitation({
+        invitationId,
       });
 
       if (result.error) {
-        setError(result.error.message || "Failed to update role");
+        setError(result.error.message || "Failed to cancel invitation");
       } else {
-        loadMembers();
+        loadInvitations();
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -174,8 +158,35 @@ export function OrganizationMembers({
         setError("An unknown error occurred");
       }
     } finally {
-      setUpdatingRole(null);
+      setCancellingId(null);
     }
+  };
+
+  const getStatusBadge = (status: string, expiresAt: string) => {
+    const isExpired = new Date(expiresAt) < new Date();
+
+    if (isExpired) {
+      return <Badge variant="destructive">Expired</Badge>;
+    }
+
+    switch (status) {
+      case "pending":
+        return <Badge variant="outline">Pending</Badge>;
+      case "accepted":
+        return <Badge variant="default">Accepted</Badge>;
+      case "rejected":
+        return <Badge variant="secondary">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   if (loading) {
@@ -191,15 +202,15 @@ export function OrganizationMembers({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Members</h3>
+          <h3 className="text-lg font-semibold">Invitations</h3>
           <p className="text-sm text-muted-foreground">
-            Manage organization members and their roles
+            Manage pending and active invitations
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
+              <Mail className="mr-2 h-4 w-4" />
               Invite Member
             </Button>
           </DialogTrigger>
@@ -267,10 +278,10 @@ export function OrganizationMembers({
         </Alert>
       )}
 
-      {members.length === 0 ? (
+      {invitations.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">
-          <UserPlus className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No members yet</p>
+          <Mail className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">No invitations yet</p>
           <p className="text-sm text-muted-foreground mt-2">
             Invite members to join your organization
           </p>
@@ -280,66 +291,72 @@ export function OrganizationMembers({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Member</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Invited</TableHead>
+                <TableHead>Expires</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {members.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        {member.user.image ? (
-                          <AvatarImage
-                            src={member.user.image}
-                            alt={member.user.name}
-                          />
-                        ) : (
-                          <AvatarFallback>
-                            {member.user.name?.charAt(0).toUpperCase() || "U"}
-                          </AvatarFallback>
+              {invitations.map((invitation) => {
+                const isExpired = new Date(invitation.expiresAt) < new Date();
+                const canResend = invitation.status === "pending" && !isExpired;
+                const canCancel = invitation.status === "pending";
+
+                return (
+                  <TableRow key={invitation.id}>
+                    <TableCell className="font-medium">
+                      {invitation.email}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{invitation.role}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(invitation.status, invitation.expiresAt.toISOString())}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(invitation.createdAt.toISOString())}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(invitation.expiresAt.toISOString())}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {canResend && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleResendInvitation(
+                                invitation.id,
+                                invitation.email,
+                                invitation.role
+                              )
+                            }
+                            disabled={resendingId === invitation.id}
+                          >
+                            <RefreshCw
+                              className={`h-4 w-4 ${resendingId === invitation.id ? "animate-spin" : ""}`}
+                            />
+                          </Button>
                         )}
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{member.user.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {member.user.email}
-                        </p>
+                        {canCancel && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCancelInvitation(invitation.id)}
+                            disabled={cancellingId === invitation.id}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={member.role}
-                      onValueChange={(value) =>
-                        handleUpdateRole(member.id, value)
-                      }
-                      disabled={updatingRole === member.id}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="member">Member</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="owner">Owner</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveMember(member.id)}
-                      disabled={removingId === member.id}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

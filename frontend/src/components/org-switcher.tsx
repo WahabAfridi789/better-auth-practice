@@ -1,6 +1,5 @@
 'use client';
 
-// import { useAuth, useOrganizationList } from '@clerk/nextjs';
 import { Check, ChevronsUpDown, GalleryVerticalEnd, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -20,62 +19,26 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar';
-import { useEffect, useState } from 'react';
 import { authClient, useListOrganizations } from '@/lib/auth/auth-client';
-import { Organization } from 'better-auth/plugins';
 
 export function OrgSwitcher() {
   const { isMobile, state } = useSidebar();
-  const [active, setActive] = useState<Organization | undefined>(undefined)
-  const [organizationDetails, setOrganizationDetails] = useState<Organization | undefined>()
   const router = useRouter();
-  const { data: organizations, isPending: isLoading, refetch } = useListOrganizations();
-  const { data: activeOrganization, isPending, refetch: refetchActiveOrganization } = authClient.useActiveOrganization()
-
-
-
-
-  const orgId = activeOrganization && activeOrganization?.id
-
-  const fetchOrgMembers = async () => {
-    if (orgId) {
-      const { data, error } = await authClient.organization.getFullOrganization({
-        query: {
-          organizationId: orgId,
-          organizationSlug: organizations?.find((org) => org.id === orgId)?.slug || '',
-          membersLimit: 100,
-        },
-      });
-      setOrganizationDetails(organizationDetails)
-      console.log("authClient.organization.getFullOrganization", data)
-    }
-  }
-
-  useEffect(() => {
-    if (orgId)
-      fetchOrgMembers()
-
-  }, [])
-
-
+  const { data: organizations, isPending: isLoading } = useListOrganizations();
+  const { data: activeOrganization, refetch: refetchActiveOrganization } = authClient.useActiveOrganization();
 
   // Handle organization switch
   const handleOrganizationSwitch = async (organizationId: string) => {
-    console.log('handleOrganizationSwitch', orgId, organizationId);
-    if (orgId === organizationId || !setActive) {
-      console.log('Already active or setActive not available', orgId, organizationId);
-      return; // Already active or setActive not available
+    if (activeOrganization?.id === organizationId) {
+      return; // Already active
     }
 
     try {
-      const { data, error } = await authClient.organization.setActive({
+      await authClient.organization.setActive({
         organizationId: organizationId,
         organizationSlug: organizations?.find((org) => org.id === organizationId)?.slug || '',
       });
-      console.log("authClient.organization.setActive", data)
-      refetchActiveOrganization()
-
-      await setActive(organizations?.find((org) => org.id === organizationId) || undefined);
+      refetchActiveOrganization();
     } catch (error) {
       console.error('Failed to switch organization:', error);
     }
@@ -107,7 +70,7 @@ export function OrgSwitcher() {
     );
   }
 
-  // // Show create organization option if no organizations
+  // Show create organization option if no organizations
   if (!organizations || organizations.length === 0) {
     return (
       <SidebarMenu>
@@ -144,8 +107,7 @@ export function OrgSwitcher() {
   }
 
   // Use active organization or first organization as fallback
-  const displayOrganization =
-    activeOrganization || organizations[0];
+  const displayOrganization = activeOrganization || organizations[0];
 
   if (!displayOrganization) {
     return null;
@@ -160,8 +122,8 @@ export function OrgSwitcher() {
               size='lg'
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
             >
-              {
-                displayOrganization.logo ? (
+              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
+                {displayOrganization.logo ? (
                   <Image
                     src={displayOrganization.logo}
                     alt={displayOrganization.name}
@@ -172,9 +134,6 @@ export function OrgSwitcher() {
                 ) : (
                   <GalleryVerticalEnd className='size-4' />
                 )}
-              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
-                <div>Org Switcher</div>
-
               </div>
               <div
                 className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${state === 'collapsed'
@@ -186,9 +145,7 @@ export function OrgSwitcher() {
                   {displayOrganization.name}
                 </span>
                 <span className='text-muted-foreground truncate text-xs'>
-                  {organizationDetails?.members.find(
-                    (m) => m.organizationId === displayOrganization.id
-                  )?.role || 'Organization'}
+                  Organization
                 </span>
               </div>
               <ChevronsUpDown
@@ -209,13 +166,11 @@ export function OrgSwitcher() {
               Organizations
             </DropdownMenuLabel>
             {organizations.map((organization, index) => {
-              const isActive = organization.id === orgId;
+              const isActive = organization.id === activeOrganization?.id;
               return (
                 <DropdownMenuItem
                   key={organization.id}
-                  onClick={() =>
-                    handleOrganizationSwitch(organization.id)
-                  }
+                  onClick={() => handleOrganizationSwitch(organization.id)}
                   className='gap-2 p-2'
                 >
                   <div className='flex size-6 items-center justify-center overflow-hidden rounded-md border'>

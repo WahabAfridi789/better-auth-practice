@@ -3,11 +3,33 @@
 import { useState, useEffect } from "react";
 import { organization } from "@/lib/auth/auth-client";
 import { Team } from "better-auth/plugins";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { UsersRound, Plus, Trash2, Calendar } from "lucide-react";
 
 interface OrganizationTeamsProps {
   organizationId: string;
 }
-
 
 export function OrganizationTeams({
   organizationId,
@@ -17,10 +39,11 @@ export function OrganizationTeams({
   const [error, setError] = useState("");
   const [newTeamName, setNewTeamName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     loadTeams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);
 
   const loadTeams = async () => {
@@ -52,8 +75,12 @@ export function OrganizationTeams({
 
     try {
       setCreating(true);
+      setError("");
       type OrganizationWithTeams = typeof organization & {
-        createTeam: (params: { organizationId: string; name: string }) => Promise<{ data: Team; error: Error | null }>;
+        createTeam: (params: {
+          organizationId: string;
+          name: string;
+        }) => Promise<{ data: Team; error: Error | null }>;
       };
       const orgWithTeams = organization as OrganizationWithTeams;
 
@@ -66,6 +93,7 @@ export function OrganizationTeams({
         setError(result.error.message || "Failed to create team");
       } else {
         setNewTeamName("");
+        setIsDialogOpen(false);
         loadTeams();
       }
     } catch (err: unknown) {
@@ -83,8 +111,13 @@ export function OrganizationTeams({
     if (!confirm("Are you sure you want to delete this team?")) return;
 
     try {
+      setDeletingId(teamId);
+      setError("");
       type OrganizationWithTeams = typeof organization & {
-        removeTeam: (params: { organizationId: string; teamId: string }) => Promise<{ data: Team; error: Error | null }>;
+        removeTeam: (params: {
+          organizationId: string;
+          teamId: string;
+        }) => Promise<{ data: Team; error: Error | null }>;
       };
       const orgWithTeams = organization as OrganizationWithTeams;
 
@@ -104,81 +137,143 @@ export function OrganizationTeams({
       } else {
         setError("Failed to delete team");
       }
+    } finally {
+      setDeletingId(null);
     }
   };
 
+  const formatDate = (date: string | Date) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   if (loading) {
-    return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Teams
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold">Teams</h3>
+          <p className="text-sm text-muted-foreground">
+            Organize members into teams
+          </p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Team
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Team</DialogTitle>
+              <DialogDescription>
+                Create a new team within this organization
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreateTeam} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="teamName" className="text-sm font-medium">
+                  Team Name
+                </label>
+                <Input
+                  id="teamName"
+                  type="text"
+                  placeholder="Engineering Team"
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  required
+                />
+              </div>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={creating}>
+                  {creating ? "Creating..." : "Create Team"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      {/* Create Team Form */}
-      <form onSubmit={handleCreateTeam} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-3">
-        <h4 className="font-medium text-gray-900 dark:text-white">
-          Create Team
-        </h4>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newTeamName}
-            onChange={(e) => setNewTeamName(e.target.value)}
-            placeholder="Team name"
-            required
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button
-            type="submit"
-            disabled={creating}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
-          >
-            {creating ? "Creating..." : "Create"}
-          </button>
+      {teams.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg">
+          <UsersRound className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">No teams yet</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Create teams to organize your members
+          </p>
         </div>
-      </form>
-
-      {/* Teams List */}
-      <div className="space-y-2">
-        {teams.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            No teams yet
-          </div>
-        ) : (
-          teams.map((team) => (
-            <div
-              key={team.id}
-              className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-            >
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {team.name}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Created {new Date(team.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <button
-                onClick={() => handleDeleteTeam(team.id)}
-                className="px-3 py-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          ))
-        )}
-      </div>
+      ) : (
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Team Name</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {teams.map((team) => (
+                <TableRow key={team.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <UsersRound className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{team.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      {formatDate(team.createdAt instanceof Date ? team.createdAt : new Date(team.createdAt))}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTeam(team.id)}
+                      disabled={deletingId === team.id}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
