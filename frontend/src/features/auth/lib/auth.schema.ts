@@ -15,17 +15,13 @@ export const authSchemas = {
   }),
 
   // Register
-  register: z.object({
+  signUp: z.object({
     email: emailSchema,
     password: passwordSchema,
-    firstName: z
+    name: z
       .string()
       .min(1, 'First name is required')
-      .max(100, 'First name must be at most 100 characters'),
-    lastName: z
-      .string()
-      .min(1, 'Last name is required')
-      .max(100, 'Last name must be at most 100 characters')
+      .max(100, 'First name must be at most 100 characters')
   }),
 
   // Change password
@@ -64,7 +60,7 @@ export const authSchemas = {
 };
 
 export type LoginFormData = z.infer<typeof authSchemas.login>;
-export type RegisterFormData = z.infer<typeof authSchemas.register>;
+export type SignUpFormData = z.infer<typeof authSchemas.signUp>;
 export type ChangePasswordFormData = z.infer<typeof authSchemas.changePassword>;
 export type ResetPasswordRequestFormData = z.infer<
   typeof authSchemas.resetPasswordRequest

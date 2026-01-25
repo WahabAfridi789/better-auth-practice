@@ -5,17 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FieldGroup } from '@/components/ui/field';
 import { LoadingSwap } from '@/components/ui/loading-swap';
-import { signIn } from '@/lib/auth/auth-client';
+import { signIn, signUp } from '@/lib/auth/auth-client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import AuthHeader from '../components/auth-header';
 import { SocialAuthButtons } from '../components/social-auth-buttons';
-import { authSchemas, type LoginFormData } from '../lib/auth.schema';
+import { authSchemas, type SignUpFormData } from '../lib/auth.schema';
 
 
-export function LoginForm() {
+export function SignUpForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,26 +24,28 @@ export function LoginForm() {
     defaultValues: {
       email: '',
       password: '',
-    } satisfies LoginFormData,
+      name: '',
+    } satisfies SignUpFormData,
     validators: {
-      onSubmit: authSchemas.login,
+      onSubmit: authSchemas.signUp,
     },
-    onSubmit: async ({ value }: { value: LoginFormData }) => {
+    onSubmit: async ({ value }: { value: SignUpFormData }) => {
       try {
         setIsSubmitting(true);
 
-        const result = await signIn.email({
+        const result = await signUp.email({
           email: value.email,
           password: value.password,
+          name: value.name,
           callbackURL: '/dashboard/overview',
         });
 
         if (result.error) {
-          toast.error('Login failed', {
+          toast.error('Sign up failed', {
             description: result.error.message,
           });
         } else {
-          toast.success('Login successful', {
+          toast.success('Sign up successful', {
             description: 'You are now logged in',
           });
           router.push('/dashboard/overview');
@@ -51,7 +53,7 @@ export function LoginForm() {
 
 
       } catch (error) {
-        console.error('Login error:', error);
+        console.error('Sign up error:', error);
         setIsSubmitting(false);
       }
       finally {
@@ -62,7 +64,7 @@ export function LoginForm() {
 
   return (
     <Card className="w-full">
-      <AuthHeader title="Login" description="Welcome back! Please enter your details." />
+      <AuthHeader title="Sign Up" description="Welcome! Please enter your details." />
       <CardContent className='space-y-6'>
         <form
           onSubmit={(e) => {
@@ -72,6 +74,12 @@ export function LoginForm() {
           className="w-full"
         >
           <FieldGroup>
+
+            <form.AppField name="name">
+              {(field) => <field.Input label="Name" placeHolder="John Doe" />}
+            </form.AppField>
+
+
             <form.AppField name="email">
               {(field) => <field.Input label="Email" placeHolder="you@example.com" />}
             </form.AppField>
@@ -87,19 +95,12 @@ export function LoginForm() {
                   >
                     Forgot password?
                   </Link>
-                  <Link
-                    href="/auth/sign-up"
-                    className="text-sm text-primary hover:underline transition-colors"
-                  >
-                    Don't have an account? Sign up
-                  </Link>
                 </div>
               )}
             </form.AppField>
 
-
             <Button variant={"default"} type="submit" disabled={isSubmitting} className="w-full">
-              <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>
+              <LoadingSwap isLoading={isSubmitting}>Sign Up</LoadingSwap>
             </Button>
           </FieldGroup>
         </form>

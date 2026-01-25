@@ -2,9 +2,10 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { twoFactor, organization, admin } from "better-auth/plugins";
 import { prisma } from "./prisma.js";
-import { sendOrganizationInvitation } from "./email-client.js";
+
 import { ApiResponse } from "../utils/response.util.js";
 import { response } from "express";
+import EmailService from "../services/email.service.js";
 
 export const auth = betterAuth({
   appName: "Better Auth Todo App",
@@ -41,15 +42,14 @@ export const auth = betterAuth({
       async sendInvitationEmail(data) {
         const inviteLink = `${process.env.FRONTEND_URL}/accept-invitation/${data.id}`;
         try {
-          const result = await sendOrganizationInvitation({
-            email: data.email,
-            invitedByUsername: data.inviter.user.name,
-            invitedByEmail: data.inviter.user.email,
-            teamName: data.organization.name,
+          const emailService = new EmailService();
+          await emailService.sendOrganizationInvitationEmail(
+            data.email,
+            data.inviter.user.name,
+            data.inviter.user.email,
+            data.organization.name,
             inviteLink,
-          });
-
-          console.log("result", result);
+          );
         } catch (error) {
           if (error instanceof Error) {
             console.error(

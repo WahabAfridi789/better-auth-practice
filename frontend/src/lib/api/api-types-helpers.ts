@@ -3,14 +3,16 @@
  * These types make optional properties required where needed
  */
 
-import type { paths, components } from "./api-types";
+import type { paths, components } from './api-types';
+import { Session, User } from 'better-auth';
 
 // Extract the todos GET response type
-type TodosGetResponse = paths["/api/todos"]["get"]["responses"]["200"]["content"]["application/json"];
+type TodosGetResponse =
+  paths['/api/todos']['get']['responses']['200']['content']['application/json'];
 
 // Extract pagination type from meta.pagination in the response
 export type PaginationMeta = NonNullable<
-  NonNullable<TodosGetResponse["meta"]>["pagination"]
+  NonNullable<TodosGetResponse['meta']>['pagination']
 >;
 
 // Backend always returns pagination with all required fields, so we can use it directly
@@ -18,5 +20,7 @@ export type PaginationMeta = NonNullable<
 export type RequiredPaginationMeta = Required<PaginationMeta>;
 
 // Re-export commonly used types
-export type Todo = components["schemas"]["Todo"];
-export type TodoStats = components["schemas"]["TodoStats"];
+export type Todo = components['schemas']['Todo'];
+export type TodoStats = components['schemas']['TodoStats'];
+
+export type BetterAuthSession = Session & User;
