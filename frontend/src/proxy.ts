@@ -1,7 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/todos', '/settings', '/organizations'];
+const protectedRoutes = [
+  '/dashboard/*',
+  '/todos/*',
+  '/settings/*',
+  '/organizations/*'
+];
 
 // Routes that should redirect to dashboard if already authenticated (except 2FA page)
 const authRoutes = ['/auth'];
@@ -17,15 +22,19 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith(route)
   );
 
+  console.log('isProtectedRoute', isProtectedRoute);
+
   // Check if it's an auth route (login/signup) but not an exception
   const isAuthException = authExceptions.some((route) =>
     pathname.startsWith(route)
   );
+  console.log('isAuthException', isAuthException);
   const isAuthRoute =
     authRoutes.some((route) => pathname.startsWith(route)) && !isAuthException;
 
   // Get session by calling your backend (must forward cookies!)
   const session = request.cookies.has('better-auth.session_token');
+  console.log('session', session);
 
   // Redirect unauthenticated users away from protected routes
   if (isProtectedRoute && !session) {
@@ -39,14 +48,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
+  console.log('returning next response');
+
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/todos/:path*',
-    '/todos',
     '/settings/:path*',
     '/settings',
     '/organizations/:path*',
