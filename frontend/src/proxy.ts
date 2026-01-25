@@ -1,16 +1,58 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
+// Routes that require authentication
+const protectedRoutes = ['/dashboard', '/todos', '/settings', '/organizations'];
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  if (isProtectedRoute(req)) await auth.protect();
-});
+// Routes that should redirect to dashboard if already authenticated (except 2FA page)
+const authRoutes = ['/auth'];
+
+// Routes that should NOT redirect even if authenticated (2FA verification, invitation acceptance)
+const authExceptions = ['/auth/two-factor', '/accept-invitation'];
+
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if the route is protected
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  // Check if it's an auth route (login/signup) but not an exception
+  const isAuthException = authExceptions.some((route) =>
+    pathname.startsWith(route)
+  );
+  const isAuthRoute =
+    authRoutes.some((route) => pathname.startsWith(route)) && !isAuthException;
+
+  // Get session by calling your backend (must forward cookies!)
+  const session = request.cookies.has('better-auth.session_token');
+
+  // Redirect unauthenticated users away from protected routes
+  if (isProtectedRoute && !session) {
+    const url = new URL('/auth', request.url);
+    url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect authenticated users away from auth routes (except 2FA page)
+  if (isAuthRoute && session) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  return NextResponse.next();
+}
+
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)'
+    '/dashboard/:path*',
+    '/todos/:path*',
+    '/todos',
+    '/settings/:path*',
+    '/settings',
+    '/organizations/:path*',
+    '/organizations',
+    '/auth/:path*',
+    '/auth',
+    '/accept-invitation/:path*'
   ]
 };

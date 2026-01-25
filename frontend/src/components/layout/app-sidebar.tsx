@@ -31,7 +31,7 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navItems } from '@/config/nav-config';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useOrganization, useUser } from '@clerk/nextjs';
+
 import { useFilteredNavItems } from '@/hooks/use-nav';
 import {
   IconBell,
@@ -41,7 +41,7 @@ import {
   IconLogout,
   IconUserCircle
 } from '@tabler/icons-react';
-import { SignOutButton } from '@clerk/nextjs';
+
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
@@ -51,8 +51,8 @@ import { OrgSwitcher } from '../org-switcher';
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
-  const { user } = useUser();
-  const { organization } = useOrganization();
+  // const { user } = useUser();
+  // const { organization } = useOrganization();
   const router = useRouter();
   const filteredItems = useFilteredNavItems(navItems);
 
@@ -70,7 +70,7 @@ export default function AppSidebar() {
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
             {filteredItems.map((item) => {
-              const Icon = item.icon ? Icons[item.icon] : Icons.logo;
+              const Icon = item.icon ? Icons[item.icon] : Icons.Cog;
               return item?.items && item?.items?.length > 0 ? (
                 <Collapsible
                   key={item.title}
@@ -84,7 +84,7 @@ export default function AppSidebar() {
                         tooltip={item.title}
                         isActive={pathname === item.url}
                       >
-                        {item.icon && <Icon />}
+                        {item.icon && <Icons.Cog />}
                         <span>{item.title}</span>
                         <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                       </SidebarMenuButton>
@@ -115,7 +115,7 @@ export default function AppSidebar() {
                     isActive={pathname === item.url}
                   >
                     <Link href={item.url}>
-                      <Icon />
+                      {item.icon && <Icons.Cog />}
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -134,13 +134,13 @@ export default function AppSidebar() {
                   size='lg'
                   className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
                 >
-                  {user && (
+                  {/* {user && (
                     <UserAvatarProfile
                       className='h-8 w-8 rounded-lg'
                       showInfo
                       user={user}
                     />
-                  )}
+                  )} */}
                   <IconChevronsDown className='ml-auto size-4' />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -152,13 +152,13 @@ export default function AppSidebar() {
               >
                 <DropdownMenuLabel className='p-0 font-normal'>
                   <div className='px-1 py-1.5'>
-                    {user && (
+                    {/* {user && (
                       <UserAvatarProfile
                         className='h-8 w-8 rounded-lg'
                         showInfo
                         user={user}
                       />
-                    )}
+                    )} */}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -170,14 +170,14 @@ export default function AppSidebar() {
                     <IconUserCircle className='mr-2 h-4 w-4' />
                     Profile
                   </DropdownMenuItem>
-                  {organization && (
+                  {/* {organization && (
                     <DropdownMenuItem
                       onClick={() => router.push('/dashboard/billing')}
                     >
                       <IconCreditCard className='mr-2 h-4 w-4' />
                       Billing
                     </DropdownMenuItem>
-                  )}
+                  )} */}
                   <DropdownMenuItem>
                     <IconBell className='mr-2 h-4 w-4' />
                     Notifications
@@ -186,7 +186,7 @@ export default function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <IconLogout className='mr-2 h-4 w-4' />
-                  <SignOutButton redirectUrl='/auth/sign-in' />
+                  {/* <SignOutButton redirectUrl='/auth/sign-in' /> */}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

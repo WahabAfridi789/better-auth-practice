@@ -8,16 +8,17 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { useOrganization, Protect } from '@clerk/nextjs';
+
 import { BadgeCheck, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function ExclusivePage() {
-  const { organization, isLoaded } = useOrganization();
+  // const { organization, isLoaded } = useOrganization();
 
   return (
-    <PageContainer isloading={!isLoaded}>
-      <Protect
+    <PageContainer >
+      <div>Exclusive Page</div>
+      {/* <Protect
         plan='pro'
         fallback={
           <div className='flex h-full items-center justify-center'>
@@ -69,7 +70,7 @@ export default function ExclusivePage() {
             </CardContent>
           </Card>
         </div>
-      </Protect>
+      </Protect> */}
     </PageContainer>
   );
 }

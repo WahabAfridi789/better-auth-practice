@@ -8,19 +8,18 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { useOrganization } from '@clerk/nextjs';
-import { PricingTable } from '@clerk/nextjs';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { billingInfoContent } from '@/config/infoconfig';
 
 export default function BillingPage() {
-  const { organization, isLoaded } = useOrganization();
+  // const { organization, isLoaded } = useOrganization();
 
   return (
     <PageContainer
-      isloading={!isLoaded}
-      access={!!organization}
+      // isloading={!isLoaded}
+      // access={!!organization}
       accessFallback={
         <div className='flex min-h-[400px] items-center justify-center'>
           <div className='space-y-2 text-center'>
@@ -34,7 +33,7 @@ export default function BillingPage() {
       }
       infoContent={billingInfoContent}
       pageTitle='Billing & Plans'
-      pageDescription={`Manage your subscription and usage limits for ${organization?.name}`}
+    // pageDescription={`Manage your subscription and usage limits for ${organization?.name}`}
     >
       <div className='space-y-6'>
         {/* Info Alert */}
@@ -56,7 +55,7 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent>
             <div className='mx-auto max-w-4xl'>
-              <PricingTable for='organization' />
+              {/* <PricingTable for='organization' /> */}
             </div>
           </CardContent>
         </Card>

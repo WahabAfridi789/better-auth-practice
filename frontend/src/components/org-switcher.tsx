@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth, useOrganizationList } from '@clerk/nextjs';
+// import { useAuth, useOrganizationList } from '@clerk/nextjs';
 import { Check, ChevronsUpDown, GalleryVerticalEnd, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -25,111 +25,111 @@ import { useEffect } from 'react';
 export function OrgSwitcher() {
   const { isMobile, state } = useSidebar();
   const router = useRouter();
-  const { isLoaded, setActive, userMemberships } = useOrganizationList({
-    userMemberships: {
-      infinite: true,
-      keepPreviousData: false
-    }
-  });
+  // const { isLoaded, setActive, userMemberships } = useOrganizationList({
+  //   userMemberships: {
+  //     infinite: true,
+  //     keepPreviousData: false
+  //   }
+  // });
 
-  const { orgId } = useAuth();
+  // const { orgId } = useAuth();
 
-  useEffect(() => {
-    console.log('revalidating memberships');
-    if (userMemberships?.revalidate) {
-      void userMemberships.revalidate();
-    }
-  }, [orgId]);
+  // useEffect(() => {
+  //   console.log('revalidating memberships');
+  //   if (userMemberships?.revalidate) {
+  //     void userMemberships.revalidate();
+  //   }
+  // }, [orgId]);
 
   // Get the currently active organization
-  const activeOrganization = userMemberships?.data?.find(
-    (membership) => membership.organization.id === orgId
-  )?.organization;
+  // const activeOrganization = userMemberships?.data?.find(
+  //   (membership) => membership.organization.id === orgId
+  // )?.organization;
 
   // Handle organization switch
-  const handleOrganizationSwitch = async (organizationId: string) => {
-    if (orgId === organizationId || !setActive) {
-      return; // Already active or setActive not available
-    }
-    try {
-      await setActive({ organization: organizationId });
-    } catch (error) {
-      console.error('Failed to switch organization:', error);
-    }
-  };
+  // const handleOrganizationSwitch = async (organizationId: string) => {
+  //   if (orgId === organizationId || !setActive) {
+  //     return; // Already active or setActive not available
+  //   }
+  //   try {
+  //     await setActive({ organization: organizationId });
+  //   } catch (error) {
+  //     console.error('Failed to switch organization:', error);
+  //   }
+  // };
 
   // Show loading state
-  if (!isLoaded) {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton size='lg' disabled>
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg'>
-              <GalleryVerticalEnd className='size-4' />
-            </div>
-            <div
-              className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
-                state === 'collapsed'
-                  ? 'invisible max-w-0 overflow-hidden opacity-0'
-                  : 'visible max-w-full opacity-100'
-              }`}
-            >
-              <span className='truncate font-medium'>Loading...</span>
-              <span className='text-muted-foreground truncate text-xs'>
-                Organizations
-              </span>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
+  // if (!isLoaded) {
+  //   return (
+  //     <SidebarMenu>
+  //       <SidebarMenuItem>
+  //         <SidebarMenuButton size='lg' disabled>
+  //           <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg'>
+  //             <GalleryVerticalEnd className='size-4' />
+  //           </div>
+  //           <div
+  //             className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
+  //               state === 'collapsed'
+  //                 ? 'invisible max-w-0 overflow-hidden opacity-0'
+  //                 : 'visible max-w-full opacity-100'
+  //             }`}
+  //           >
+  //             <span className='truncate font-medium'>Loading...</span>
+  //             <span className='text-muted-foreground truncate text-xs'>
+  //               Organizations
+  //             </span>
+  //           </div>
+  //         </SidebarMenuButton>
+  //       </SidebarMenuItem>
+  //     </SidebarMenu>
+  //   );
+  // }
 
-  // Show create organization option if no organizations
-  if (!userMemberships?.data || userMemberships.data.length === 0) {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            size='lg'
-            onClick={() => router.push('/dashboard/workspaces')}
-            className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-          >
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
-              <Plus className='size-4' />
-            </div>
-            <div
-              className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
-                state === 'collapsed'
-                  ? 'invisible max-w-0 overflow-hidden opacity-0'
-                  : 'visible max-w-full opacity-100'
-              }`}
-            >
-              <span className='truncate font-medium'>Create organization</span>
-              <span className='text-muted-foreground truncate text-xs'>
-                Get started
-              </span>
-            </div>
-            <ChevronsUpDown
-              className={`ml-auto transition-all duration-200 ease-in-out ${
-                state === 'collapsed'
-                  ? 'invisible max-w-0 opacity-0'
-                  : 'visible max-w-full opacity-100'
-              }`}
-            />
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
+  // // Show create organization option if no organizations
+  // if (!userMemberships?.data || userMemberships.data.length === 0) {
+  //   return (
+  //     <SidebarMenu>
+  //       <SidebarMenuItem>
+  //         <SidebarMenuButton
+  //           size='lg'
+  //           onClick={() => router.push('/dashboard/workspaces')}
+  //           className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+  //         >
+  //           <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
+  //             <Plus className='size-4' />
+  //           </div>
+  //           <div
+  //             className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
+  //               state === 'collapsed'
+  //                 ? 'invisible max-w-0 overflow-hidden opacity-0'
+  //                 : 'visible max-w-full opacity-100'
+  //             }`}
+  //           >
+  //             <span className='truncate font-medium'>Create organization</span>
+  //             <span className='text-muted-foreground truncate text-xs'>
+  //               Get started
+  //             </span>
+  //           </div>
+  //           <ChevronsUpDown
+  //             className={`ml-auto transition-all duration-200 ease-in-out ${
+  //               state === 'collapsed'
+  //                 ? 'invisible max-w-0 opacity-0'
+  //                 : 'visible max-w-full opacity-100'
+  //             }`}
+  //           />
+  //         </SidebarMenuButton>
+  //       </SidebarMenuItem>
+  //     </SidebarMenu>
+  //   );
+  // }
 
   // Use active organization or first organization as fallback
-  const displayOrganization =
-    activeOrganization || userMemberships.data[0]?.organization;
+  // const displayOrganization =
+  //   activeOrganization || userMemberships.data[0]?.organization;
 
-  if (!displayOrganization) {
-    return null;
-  }
+  // if (!displayOrganization) {
+  //   return null;
+  // }
 
   return (
     <SidebarMenu>
@@ -140,8 +140,7 @@ export function OrgSwitcher() {
               size='lg'
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
             >
-              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
-                {displayOrganization.hasImage &&
+              {/* {displayOrganization.hasImage &&
                 displayOrganization.imageUrl ? (
                   <Image
                     src={displayOrganization.imageUrl}
@@ -149,33 +148,33 @@ export function OrgSwitcher() {
                     width={32}
                     height={32}
                     className='size-full object-cover'
-                  />
-                ) : (
+                  /> */}
+              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
+                <div>Org Switcher</div>
+                {/* : (
                   <GalleryVerticalEnd className='size-4' />
-                )}
+                )} */}
               </div>
               <div
-                className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
-                  state === 'collapsed'
+                className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${state === 'collapsed'
                     ? 'invisible max-w-0 overflow-hidden opacity-0'
                     : 'visible max-w-full opacity-100'
-                }`}
+                  }`}
               >
                 <span className='truncate font-medium'>
-                  {displayOrganization.name}
+                  {/* {displayOrganization.name} */}
                 </span>
                 <span className='text-muted-foreground truncate text-xs'>
-                  {userMemberships.data.find(
+                  {/* {userMemberships.data.find(
                     (m) => m.organization.id === displayOrganization.id
-                  )?.role || 'Organization'}
+                  )?.role || 'Organization'} */}
                 </span>
               </div>
               <ChevronsUpDown
-                className={`ml-auto transition-all duration-200 ease-in-out ${
-                  state === 'collapsed'
+                className={`ml-auto transition-all duration-200 ease-in-out ${state === 'collapsed'
                     ? 'invisible max-w-0 opacity-0'
                     : 'visible max-w-full opacity-100'
-                }`}
+                  }`}
               />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -188,7 +187,7 @@ export function OrgSwitcher() {
             <DropdownMenuLabel className='text-muted-foreground text-xs'>
               Organizations
             </DropdownMenuLabel>
-            {userMemberships.data.map((membership, index) => {
+            {/* {userMemberships.data.map((membership, index) => {
               const isActive = membership.organization.id === orgId;
               return (
                 <DropdownMenuItem
@@ -219,7 +218,7 @@ export function OrgSwitcher() {
                   )}
                 </DropdownMenuItem>
               );
-            })}
+            })} */}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className='gap-2 p-2'
