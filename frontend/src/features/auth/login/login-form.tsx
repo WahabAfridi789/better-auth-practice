@@ -110,7 +110,7 @@ export function LoginForm() {
 
             <SocialAuthButtons callbackUrl="/dashboard/overview" />
 
-            <Button type="submit" disabled={isSubmitting} className="w-full">
+            <Button variant={"default"} type="submit" disabled={isSubmitting} className="w-full">
               <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>
             </Button>
           </FieldGroup>
