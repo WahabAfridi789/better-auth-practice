@@ -1,6 +1,6 @@
 "use client";
 
-import { organization, useListOrganizations } from "@/lib/auth/auth-client";
+import { authClient, organization, useListOrganizations } from "@/lib/auth/auth-client";
 import { Organization } from "better-auth/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,13 +13,13 @@ export function OrganizationSwitcher() {
 
   const [isOpen, setIsOpen] = useState(false);
   const { data: organizations, isPending: loading, refetch } = useListOrganizations();
-
+  const { data: activeOrganization, isPending } = authClient.useActiveOrganization()
 
 
   const handleSwitchOrganization = async (orgId: string) => {
     try {
       await organization.setActive({ organizationId: orgId });
-      setActiveOrg(organizations?.find((org) => org.id === orgId) || null);
+      setActiveOrg(activeOrganization || null);
       setIsOpen(false);
       refetch();
     } catch (error) {

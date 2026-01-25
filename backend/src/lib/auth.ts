@@ -75,6 +75,14 @@ export const auth = betterAuth({
       // Update user info (including profile image) on every sign-in
       overrideUserInfoOnSignIn: true,
     },
+    github: {
+      clientId: "",
+      clientSecret: "",
+    },
+    discord: {
+      clientId: "",
+      clientSecret: "",
+    },
   },
   account: {
     accountLinking: {
