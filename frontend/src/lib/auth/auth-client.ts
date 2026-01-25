@@ -1,26 +1,26 @@
-import { createAuthClient } from "better-auth/react";
+import { createAuthClient } from 'better-auth/react';
 import {
   twoFactorClient,
   organizationClient,
-  adminClient,
-} from "better-auth/client/plugins";
+  adminClient
+} from 'better-auth/client/plugins';
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
   plugins: [
     twoFactorClient({
       onTwoFactorRedirect() {
         // Redirect to 2FA verification page
-        window.location.href = "/auth/two-factor";
-      },
+        window.location.href = '/auth/2fa';
+      }
     }),
     organizationClient({
       teams: {
-        enabled: true,
-      },
+        enabled: true
+      }
     }),
-    adminClient(),
-  ],
+    adminClient()
+  ]
 });
 
 export const {
@@ -35,5 +35,5 @@ export const {
   listAccounts,
   organization,
   useListOrganizations,
-  admin,
+  admin
 } = authClient;

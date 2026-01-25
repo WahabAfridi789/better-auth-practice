@@ -12,7 +12,7 @@ const protectedRoutes = [
 const authRoutes = ['/auth'];
 
 // Routes that should NOT redirect even if authenticated (2FA verification, invitation acceptance)
-const authExceptions = ['/auth/two-factor', '/accept-invitation'];
+const authExceptions = ['/auth/2fa', '/accept-invitation'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
