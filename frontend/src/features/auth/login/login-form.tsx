@@ -4,16 +4,16 @@ import { useAppForm } from '@/components/form/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FieldGroup } from '@/components/ui/field';
-// import { $api } from '@/lib/api-client';
 import { LoadingSwap } from '@/components/ui/loading-swap';
+import { signIn } from '@/lib/auth/auth-client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import AuthHeader from '../components/auth-header';
-import { authSchemas, type LoginFormData } from '../lib/auth.schema';
-import { apiClient } from '@/lib/api/api-client';
-import { signIn } from '@/lib/auth/auth-client';
 import { SocialAuthButtons } from '../components/social-auth-buttons';
+import { authSchemas, type LoginFormData } from '../lib/auth.schema';
+
 
 export function LoginForm() {
   const router = useRouter();
@@ -38,35 +38,18 @@ export function LoginForm() {
           callbackURL: '/dashboard/overview',
         });
 
-        // await loginMutation(
-        //   {
-        //     body: {
-        //       email: value.email,
-        //       password: value.password,
-        //     },
-        //   },
-        //   {
-        //     onSuccess: (data) => {
-        //       console.log(data);
-        //       toast.success(data.message, {
-        //         description: data.data?.message,
-        //       });
-        //       // Redirect to home or callback URL
-        //       setIsSubmitting(false);
-        //       const params = new URLSearchParams(window.location.search);
-        //       const callbackUrl = params.get('callbackUrl') || '/admin';
-        //       router.push(callbackUrl);
-        //       router.refresh(); // Refresh to update server components
-        //     },
-        //     onError: (error) => {
-        //       console.error('Login error:', error);
-        //       toast.error('Operation failed', {
-        //         description: error.error?.message || error.message,
-        //       });
-        //       setIsSubmitting(false);
-        //     },
-        //   }
-        // );
+        if (result.error) {
+          toast.error('Login failed', {
+            description: result.error.message,
+          });
+        } else {
+          toast.success('Login successful', {
+            description: 'You are now logged in',
+          });
+          router.push('/dashboard/overview');
+        }
+
+
       } catch (error) {
         console.error('Login error:', error);
         setIsSubmitting(false);
@@ -80,7 +63,7 @@ export function LoginForm() {
   return (
     <Card className="w-full">
       <AuthHeader title="Login" description="Welcome back! Please enter your details." />
-      <CardContent>
+      <CardContent className='space-y-6'>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -108,13 +91,26 @@ export function LoginForm() {
               )}
             </form.AppField>
 
-            <SocialAuthButtons callbackUrl="/dashboard/overview" />
 
             <Button variant={"default"} type="submit" disabled={isSubmitting} className="w-full">
               <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>
             </Button>
           </FieldGroup>
         </form>
+        <div className='relative'>
+          <div className='absolute inset-0 flex items-center'>
+            <span className='w-full border-t' />
+          </div>
+          <div className='relative flex justify-center text-xs uppercase'>
+            <span className='bg-background text-muted-foreground px-2'>
+              Or continue with
+            </span>
+          </div>
+
+        </div>
+        <div className=' w-full'>
+          <SocialAuthButtons callbackUrl="/dashboard/overview" />
+        </div>
       </CardContent>
     </Card>
   );

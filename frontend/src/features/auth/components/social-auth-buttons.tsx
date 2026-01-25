@@ -14,6 +14,7 @@ export function SocialAuthButtons({ callbackUrl }: { callbackUrl?: string }) {
     return (
       <BetterAuthActionButton
         variant="outline"
+        className="w-full"
         key={provider}
         action={() => {
           return authClient.signIn.social({
