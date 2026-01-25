@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // Routes that require authentication
 const protectedRoutes = [
-  '/dashboard/*',
+  '/dashboard',
   '/todos/*',
   '/settings/*',
   '/organizations/*'
@@ -38,14 +38,14 @@ export async function proxy(request: NextRequest) {
 
   // Redirect unauthenticated users away from protected routes
   if (isProtectedRoute && !session) {
-    const url = new URL('/auth', request.url);
+    const url = new URL('/auth/sign-in', request.url);
     url.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(url);
   }
 
   // Redirect authenticated users away from auth routes (except 2FA page)
   if (isAuthRoute && session) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/dashboard/overview', request.url));
   }
 
   console.log('returning next response');
