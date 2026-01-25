@@ -22,7 +22,22 @@ const baseConfig: NextConfig = {
       }
     ]
   },
-  transpilePackages: ['geist']
+  transpilePackages: ['geist'],
+  async headers() {
+    return process.env.NODE_ENV !== 'production'
+      ? [
+          {
+            source: '/:path*',
+            headers: [
+              {
+                key: 'Referrer-Policy',
+                value: 'no-referrer-when-downgrade'
+              }
+            ]
+          }
+        ]
+      : [];
+  }
 };
 
 let configWithPlugins = baseConfig;

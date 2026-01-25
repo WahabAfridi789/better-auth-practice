@@ -1,10 +1,15 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { twoFactor, organization, admin } from "better-auth/plugins";
+import {
+  twoFactor,
+  organization,
+  admin,
+  oneTap,
+  openAPI,
+  lastLoginMethod,
+} from "better-auth/plugins";
 import { prisma } from "./prisma.js";
 
-import { ApiResponse } from "../utils/response.util.js";
-import { response } from "express";
 import EmailService from "../services/email.service.js";
 
 export const auth = betterAuth({
@@ -66,6 +71,9 @@ export const auth = betterAuth({
       },
     }),
     admin(),
+    oneTap(),
+    openAPI(),
+    lastLoginMethod(),
   ],
   socialProviders: {
     google: {

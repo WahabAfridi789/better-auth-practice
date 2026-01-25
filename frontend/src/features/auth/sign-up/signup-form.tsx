@@ -89,12 +89,18 @@ export function SignUpForm() {
                 <div className="flex flex-col gap-2">
                   <field.PasswordInput label="Password" />
 
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-sm text-primary hover:underline transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
+
+
+                  <p className="text-sm text-muted-foreground">
+                    Already have an account?
+                    <Link
+                      href="/auth/sign-in"
+                      className="text-sm ml-2 font-semibold text-primary hover:underline transition-colors"
+                    >
+                      Sign in
+                    </Link>
+                  </p>
+
                 </div>
               )}
             </form.AppField>
