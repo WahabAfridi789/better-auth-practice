@@ -11,11 +11,14 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import AuthHeader from '../components/auth-header';
 import { authSchemas, type LoginFormData } from '../lib/auth.schema';
+import { apiClient } from '@/lib/api/api-client';
+import { signIn } from '@/lib/auth/auth-client';
+import { SocialAuthButtons } from '../components/social-auth-buttons';
 
 export function LoginForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const { mutateAsync: loginMutation } = $api.useMutation('post', '/auth/login');
+
 
   const form = useAppForm({
     defaultValues: {
@@ -28,6 +31,12 @@ export function LoginForm() {
     onSubmit: async ({ value }: { value: LoginFormData }) => {
       try {
         setIsSubmitting(true);
+
+        const result = await signIn.email({
+          email: value.email,
+          password: value.password,
+          callbackURL: '/dashboard/overview',
+        });
 
         // await loginMutation(
         //   {
@@ -98,6 +107,8 @@ export function LoginForm() {
                 </div>
               )}
             </form.AppField>
+
+            <SocialAuthButtons callbackUrl="/dashboard/overview" />
 
             <Button type="submit" disabled={isSubmitting} className="w-full">
               <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>

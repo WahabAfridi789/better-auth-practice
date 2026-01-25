@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
+import { signOut } from '@/lib/auth/auth-client';
 // import { SignOutButton, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 export function UserNav() {
@@ -57,7 +58,14 @@ export function UserNav() {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            {/* <SignOutButton redirectUrl='/auth/sign-in' /> */}
+
+            <Button onClick={() => signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  router.push('/auth/sign-in');
+                }
+              }
+            })}>Sign Out</Button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
