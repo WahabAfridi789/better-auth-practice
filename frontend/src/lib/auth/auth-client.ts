@@ -51,5 +51,8 @@ export const {
   listAccounts,
   organization,
   useListOrganizations,
-  admin
+  admin,
+  resetPassword,
+  requestPasswordReset,
+  changePassword
 } = authClient;

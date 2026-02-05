@@ -4,20 +4,19 @@ import { useAppForm } from '@/components/form/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FieldGroup } from '@/components/ui/field';
-import { $api } from '@/lib/api-client';
+
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import AuthHeader from '../components/auth-header';
 import { useState } from 'react';
-import {
-  authSchemas,
-  type ResetPasswordRequestFormData,
-} from '../../../../../packages/shared/src/schemas';
+import { authSchemas, ResetPasswordRequestFormData } from '../lib/auth.schema';
+import { requestPasswordReset } from '@/lib/auth/auth-client';
+
 
 export function ForgotPasswordForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { mutateAsync: forgotPassword } = $api.useMutation('post', '/auth/forgot-password');
+
 
   const form = useAppForm({
     defaultValues: {
@@ -29,29 +28,24 @@ export function ForgotPasswordForm() {
     onSubmit: async ({ value }) => {
       try {
         setIsSubmitting(true);
-        await forgotPassword(
-          {
-            body: {
-              email: value.email,
-            },
-          },
-          {
-            onSuccess: (data) => {
-              toast.success('Password reset email sent!', {
-                description: data.message,
-              });
-              setIsSubmitting(false);
-              // Redirect back to login after a delay
-              setTimeout(() => {
-                router.push('/auth/login');
-              }, 3000);
-            },
-            onError: (error) => {
-              toast.error(error.message);
-              setIsSubmitting(false);
-            },
-          }
-        );
+
+        const result = await requestPasswordReset({
+          email: value.email,
+        });
+
+        if (result.error) {
+          toast.error('Login failed', {
+            description: result.error.message,
+          });
+        } else {
+          toast.success('Login successful', {
+            description: 'You are now logged in',
+          });
+          router.push('/dashboard/overview');
+        }
+
+
+
       } catch (error) {
         console.error('Forgot password error:', error);
         toast.error('An error occurred. Please try again.');
@@ -60,8 +54,9 @@ export function ForgotPasswordForm() {
     },
   });
 
+
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full ">
       <AuthHeader
         title="Forgot Password"
         description="Enter your email address and we'll send you a link to reset your password."
@@ -87,7 +82,7 @@ export function ForgotPasswordForm() {
 
         <div className="mt-4 text-center">
           <button
-            onClick={() => router.push('/auth/login')}
+            onClick={() => router.push('/auth/sign-in')}
             className="text-sm text-primary hover:underline"
           >
             Back to Login

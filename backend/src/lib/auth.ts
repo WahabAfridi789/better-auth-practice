@@ -19,7 +19,19 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Set to true in production
+    requireEmailVerification: false,
+    sendResetPassword: async (data, request) => {
+      try {
+        const emailService = new EmailService();
+        await emailService.sendPasswordResetEmail(
+          data.user.email,
+          data.token,
+          data.user.name,
+        );
+      } catch (error) {
+        console.error("Failed to send password reset email:", error);
+      }
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days

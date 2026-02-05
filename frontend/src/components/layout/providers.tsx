@@ -1,23 +1,29 @@
 'use client';
 import React from 'react';
-import { ActiveThemeProvider } from '../active-theme';
 import { TanstackQueryProvider } from './tanstack-query-provider';
+import ThemeProvider from './ThemeToggle/theme-provider';
 
 export default function Providers({
-  activeThemeValue,
-  children
+  children,
+  activeThemeValue
 }: {
-  activeThemeValue: string;
+  activeThemeValue?: string;
   children: React.ReactNode;
 }) {
 
   return (
     <>
-      <ActiveThemeProvider initialTheme={activeThemeValue}>
+      <ThemeProvider
+        attribute='class'
+        defaultTheme='system'
+        enableSystem
+        disableTransitionOnChange
+        enableColorScheme
+      >
         <TanstackQueryProvider>
           {children}
         </TanstackQueryProvider>
-      </ActiveThemeProvider>
+      </ThemeProvider>
     </>
   );
 }

@@ -4,24 +4,27 @@ import { useAppForm } from '@/components/form/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FieldGroup } from '@/components/ui/field';
-import { $api } from '@/lib/api-client';
+
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import AuthHeader from '../components/auth-header';
+import { authSchemas, ResetPasswordFormData } from '../lib/auth.schema';
+import { resetPassword } from '@/lib/auth/auth-client';
+import { useState } from 'react';
 
-import {
-  authSchemas,
-  type ResetPasswordFormData,
-} from '../../../../../packages/shared/src/schemas';
+
 
 export function ResetPasswordForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { mutate: resetPassword, isPending } = $api.useMutation('post', '/auth/reset-password');
+
 
   const token = searchParams.get('token');
   const isValidToken = Boolean(token);
+
+
 
   const form = useAppForm({
     defaultValues: {
@@ -39,31 +42,27 @@ export function ResetPasswordForm() {
       }
 
       try {
-        resetPassword(
-          {
-            body: {
-              token: value.token,
-              newPassword: value.newPassword,
-            },
-          },
-          {
-            onSuccess: (data) => {
-              toast.success('Password reset successfully!', {
-                description: data.message,
-              });
-              // Redirect to login after a delay
-              setTimeout(() => {
-                router.push('/auth/login');
-              }, 1000);
-            },
-            onError: (error) => {
-              toast.error(error.message);
-            },
-          }
-        );
+        setIsSubmitting(true);
+        const result = await resetPassword({
+          newPassword: value.newPassword,
+          token: value.token,
+        });
+
+        if (result.error) {
+          toast.error('Reset password failed', {
+            description: result.error.message,
+          });
+        } else {
+          toast.success('Reset password successful', {
+            description: 'Your password has been reset successfully',
+          });
+          router.push('/auth/sign-in');
+        }
       } catch (error) {
         console.error('Reset password error:', error);
         toast.error('An error occurred. Please try again.');
+      } finally {
+        setIsSubmitting(false);
       }
     },
   });
@@ -109,14 +108,14 @@ export function ResetPasswordForm() {
               {(field) => <field.PasswordInput label="Confirm New Password" />}
             </form.AppField>
 
-            <Button disabled={isPending} type="submit">
-              {isPending ? 'Resetting...' : 'Reset Password'}
+            <Button disabled={isSubmitting} type="submit">
+              {isSubmitting ? 'Resetting...' : 'Reset Password'}
             </Button>
           </FieldGroup>
         </form>
 
         <div className="mt-4 text-center">
-          <Link href="/auth/login" className="text-sm text-primary hover:underline">
+          <Link href="/auth/sign-in" className="text-sm text-primary hover:underline">
             Back to Login
           </Link>
         </div>

@@ -1,11 +1,12 @@
 'use client';
 
 import { useAppForm } from '@/components/form/hooks';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FieldGroup } from '@/components/ui/field';
 import { LoadingSwap } from '@/components/ui/loading-swap';
-import { authClient, signIn, getSession } from '@/lib/auth/auth-client';
+import { authClient, getSession, signIn } from '@/lib/auth/auth-client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -13,8 +14,6 @@ import { toast } from 'sonner';
 import AuthHeader from '../components/auth-header';
 import { SocialAuthButtons } from '../components/social-auth-buttons';
 import { authSchemas, type LoginFormData } from '../lib/auth.schema';
-import { lastLoginMethod } from 'better-auth/plugins';
-import { Badge } from '@/components/ui/badge';
 
 
 
@@ -149,7 +148,7 @@ export function LoginForm() {
             <Button variant={"default"} type="submit" disabled={isSubmitting} className="w-full relative !  bg-primary!">
               <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>
               {lastMethod === "email" && (
-                <Badge className="ml-2 absolute -top-2 -right-2">Last used</Badge>
+                <Badge variant={"secondary"} className="ml-2 absolute -top-2 -right-2">Last used</Badge>
               )}
             </Button>
           </FieldGroup>
@@ -167,7 +166,7 @@ export function LoginForm() {
         </div>
         <div className=' w-full'>
           {lastMethod === "google" && (
-            <Badge className="ml-2">Last used</Badge>
+            <Badge variant={"secondary"} className="ml-2">Last used</Badge>
           )}
           <SocialAuthButtons callbackUrl="/dashboard/overview" />
         </div>
