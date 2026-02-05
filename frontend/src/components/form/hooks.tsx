@@ -8,6 +8,7 @@ import { FormSwitch } from './form-switch';
 import { FormFileUpload } from './form-file-upload';
 import { FormDatePicker } from './form-date-picker';
 import { FormMultiSelect } from './form-multi-select';
+import { FormOTP } from './form-otp';
 
 const { fieldContext, formContext, useFieldContext, useFormContext } = createFormHookContexts();
 
@@ -22,6 +23,7 @@ const { useAppForm } = createFormHook({
     FileUpload: FormFileUpload,
     DatePicker: FormDatePicker,
     MultiSelect: FormMultiSelect,
+    OTP: FormOTP,
   },
   formComponents: {},
   fieldContext,

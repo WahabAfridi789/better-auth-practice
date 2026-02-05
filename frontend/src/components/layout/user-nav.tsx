@@ -10,25 +10,28 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { signOut } from '@/lib/auth/auth-client';
-// import { SignOutButton, useUser } from '@clerk/nextjs';
+import { signOut, useSession } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 export function UserNav() {
-  // const { user } = useUser();
-  const user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: 'https://github.com/shadcn.png',
-    emailAddresses: [{ emailAddress: 'john.doe@example.com' }],
-    fullName: 'John Doe'
-  };
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
   const router = useRouter();
-  if (user) {
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/auth/sign-in');
+  }
+
+  if (user && !isPending) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
-            <UserAvatarProfile user={user} />
+            <UserAvatarProfile user={{
+              emailAddresses: [{ emailAddress: user.email || '' }],
+              fullName: user.name || '',
+              imageUrl: user.image || undefined,
+            }} />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -40,10 +43,10 @@ export function UserNav() {
           <DropdownMenuLabel className='font-normal'>
             <div className='flex flex-col space-y-1'>
               <p className='text-sm leading-none font-medium'>
-                {user.fullName}
+                {user.name}
               </p>
               <p className='text-muted-foreground text-xs leading-none'>
-                {user.emailAddresses[0].emailAddress}
+                {user.email}
               </p>
             </div>
           </DropdownMenuLabel>
@@ -57,15 +60,8 @@ export function UserNav() {
             <DropdownMenuItem>New Team</DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-
-            <Button onClick={() => signOut({
-              fetchOptions: {
-                onSuccess: () => {
-                  router.push('/auth/sign-in');
-                }
-              }
-            })}>Sign Out</Button>
+          <DropdownMenuItem onClick={handleSignOut}>
+            <Button className='w-full' variant='destructive'>Sign Out</Button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

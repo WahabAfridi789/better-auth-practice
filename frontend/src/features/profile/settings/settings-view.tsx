@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, twoFactor, signOut, linkSocial, unlinkAccount, listAccounts, authClient } from "@/lib/auth-client";
+import { useSession, twoFactor, signOut, linkSocial, unlinkAccount, listAccounts } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import QRCode from "react-qr-code";
@@ -278,7 +278,7 @@ export function SettingsView() {
   }
 
   if (!session) {
-    router.push("/auth");
+    router.push("/auth/sign-in");
     return null;
   }
 
@@ -450,11 +450,10 @@ export function SettingsView() {
               </p>
             </div>
             <div
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                is2FAEnabled
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400"
-              }`}
+              className={`px-3 py-1 rounded-full text-sm font-medium ${is2FAEnabled
+                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400"
+                }`}
             >
               {is2FAEnabled ? "Enabled" : "Disabled"}
             </div>

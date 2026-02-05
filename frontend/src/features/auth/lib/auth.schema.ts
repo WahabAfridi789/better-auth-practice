@@ -56,6 +56,15 @@ export const authSchemas = {
   // Refresh token
   refreshToken: z.object({
     refreshToken: z.string().min(1, 'Refresh token is required')
+  }),
+
+  // Two-factor authentication
+  twoFactorTotp: z.object({
+    code: z.string().length(6, 'Code must be 6 digits').regex(/^\d+$/, 'Code must contain only numbers')
+  }),
+
+  twoFactorBackup: z.object({
+    code: z.string().min(1, 'Backup code is required')
   })
 };
 
@@ -67,3 +76,5 @@ export type ResetPasswordRequestFormData = z.infer<
 >;
 export type ResetPasswordFormData = z.infer<typeof authSchemas.resetPassword>;
 export type RefreshTokenFormData = z.infer<typeof authSchemas.refreshToken>;
+export type TwoFactorTotpFormData = z.infer<typeof authSchemas.twoFactorTotp>;
+export type TwoFactorBackupFormData = z.infer<typeof authSchemas.twoFactorBackup>;

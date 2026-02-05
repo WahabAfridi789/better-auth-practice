@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, twoFactor, signOut, linkSocial, unlinkAccount, listAccounts, authClient } from "@/lib/auth/auth-client";
+import { useSession, twoFactor, signOut, linkSocial, unlinkAccount, listAccounts } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import QRCode from "react-qr-code";
+import { Modal } from "@/components/ui/modal";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { LoadingSwap } from "@/components/ui/loading-swap";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Account {
   id: string;
@@ -278,7 +283,7 @@ export function Settings() {
   }
 
   if (!session) {
-    router.push("/auth");
+    router.push("/auth/sign-in");
     return null;
   }
 
@@ -341,12 +346,9 @@ export function Settings() {
                 </div>
               </div>
               {!hasCredentialAccount && (
-                <button
-                  onClick={() => setShowSetPasswordModal(true)}
-                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                >
+                <Button size="sm" onClick={() => setShowSetPasswordModal(true)}>
                   Set Password
-                </button>
+                </Button>
               )}
             </div>
 
@@ -381,22 +383,20 @@ export function Settings() {
                 </div>
               </div>
               {hasGoogleAccount ? (
-                <button
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => handleUnlinkAccount("google")}
                   disabled={!canUnlink || unlinkingAccount === "google"}
-                  className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title={!canUnlink ? "You must have at least one sign-in method" : ""}
+                  className="text-destructive hover:text-destructive"
                 >
-                  {unlinkingAccount === "google" ? "Unlinking..." : "Unlink"}
-                </button>
+                  <LoadingSwap isLoading={unlinkingAccount === "google"}>Unlink</LoadingSwap>
+                </Button>
               ) : (
-                <button
-                  onClick={handleLinkGoogle}
-                  disabled={linkingGoogle}
-                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {linkingGoogle ? "Connecting..." : "Connect"}
-                </button>
+                <Button size="sm" onClick={handleLinkGoogle} disabled={linkingGoogle}>
+                  <LoadingSwap isLoading={linkingGoogle}>Connect</LoadingSwap>
+                </Button>
               )}
             </div>
           </div>
@@ -424,44 +424,35 @@ export function Settings() {
           </div>
         </div>
 
-        <div className="border-t  pt-4">
+        <div className="border-t pt-4">
           {!hasCredentialAccount ? (
             <div className="space-y-4">
               <p className="text-sm text-amber-600 dark:text-amber-400">
                 You need to set a password before you can enable 2FA. This is required for account recovery.
               </p>
-              <button
-                onClick={() => setShowSetPasswordModal(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-              >
+              <Button onClick={() => setShowSetPasswordModal(true)}>
                 Set Password First
-              </button>
+              </Button>
             </div>
           ) : is2FAEnabled ? (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-muted-foreground">
                 Two-factor authentication is enabled. You&apos;ll need to enter a verification code from
                 your authenticator app when signing in.
               </p>
-              <button
-                onClick={() => setShowDisableModal(true)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
-              >
+              <Button variant="destructive" onClick={() => setShowDisableModal(true)}>
                 Disable 2FA
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-muted-foreground">
                 Protect your account with a second layer of security. Once enabled, you&apos;ll need to
                 enter a code from your authenticator app in addition to your password when signing in.
               </p>
-              <button
-                onClick={() => setShowEnableModal(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-              >
+              <Button onClick={() => setShowEnableModal(true)}>
                 Enable 2FA
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -469,254 +460,205 @@ export function Settings() {
 
 
       {/* Set Password Modal */}
-      {showSetPasswordModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className=" rounded-2xl shadow-xl max-w-md w-full p-6">
-            {passwordSuccess ? (
-              <div className="text-center py-4">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Password Set Successfully!
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  You can now sign in with your email and password.
-                </p>
-              </div>
-            ) : (
-              <>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Set Your Password
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Create a password to sign in with your email. This also allows you to enable 2FA.
-                </p>
-                <div className="space-y-4">
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="New password"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    minLength={8}
-                  />
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm password"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    minLength={8}
-                  />
-                  {passwordError && (
-                    <p className="text-red-500 text-sm">{passwordError}</p>
-                  )}
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleSetPassword}
-                      disabled={settingPassword}
-                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
-                    >
-                      {settingPassword ? "Setting..." : "Set Password"}
-                    </button>
-                    <button
-                      onClick={closePasswordModal}
-                      className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+      <Modal
+        isOpen={showSetPasswordModal}
+        onClose={closePasswordModal}
+        title={passwordSuccess ? "Success" : "Set Your Password"}
+        description={passwordSuccess ? "Password has been set" : "Create a password to sign in with your email"}
+      >
+        {passwordSuccess ? (
+          <div className="text-center py-4">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-muted-foreground">
+              You can now sign in with your email and password.
+            </p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                minLength={8}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
+                minLength={8}
+              />
+            </div>
+            {passwordError && (
+              <p className="text-destructive text-sm">{passwordError}</p>
+            )}
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleSetPassword} disabled={settingPassword} className="flex-1">
+                <LoadingSwap isLoading={settingPassword}>Set Password</LoadingSwap>
+              </Button>
+              <Button variant="outline" onClick={closePasswordModal}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Enable 2FA Modal */}
-      {showEnableModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className=" rounded-2xl shadow-xl max-w-md w-full p-6">
-            {setupStep === "password" && (
-              <>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Enable Two-Factor Authentication
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Enter your password to continue setting up 2FA.
-                </p>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white mb-4"
-                />
-                {error && (
-                  <p className="text-red-500 text-sm mb-4">{error}</p>
-                )}
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleEnable2FA}
-                    disabled={isEnabling}
-                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
-                  >
-                    {isEnabling ? "Setting up..." : "Continue"}
-                  </button>
-                  <button
-                    onClick={closeModal}
-                    className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            )}
-
-            {setupStep === "qr" && totpUri && (
-              <>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Scan QR Code
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
-                </p>
-                <div className="flex justify-center mb-4 p-4 bg-white rounded-lg">
-                  <QRCode value={totpUri} size={200} />
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4 break-all">
-                  Can&apos;t scan? Enter this code manually: <br />
-                  <code className="text-blue-600">{totpUri.split("secret=")[1]?.split("&")[0]}</code>
-                </p>
-                <button
-                  onClick={() => setSetupStep("verify")}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                >
-                  I&apos;ve Scanned the Code
-                </button>
-              </>
-            )}
-
-            {setupStep === "verify" && (
-              <>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Verify Setup
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Enter the 6-digit code from your authenticator app to verify the setup.
-                </p>
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="000000"
-                  maxLength={6}
-                  className="w-full px-4 py-3 text-center text-2xl tracking-widest border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white mb-4"
-                />
-                {error && (
-                  <p className="text-red-500 text-sm mb-4">{error}</p>
-                )}
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleVerifyTotp}
-                    disabled={isEnabling || verificationCode.length !== 6}
-                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
-                  >
-                    {isEnabling ? "Verifying..." : "Verify & Enable"}
-                  </button>
-                  <button
-                    onClick={() => setSetupStep("qr")}
-                    className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Back
-                  </button>
-                </div>
-              </>
-            )}
-
-            {setupStep === "backup" && backupCodes && (
-              <>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  Save Your Backup Codes
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Save these backup codes in a secure place. You can use them to access your account if
-                  you lose your authenticator device.
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    {backupCodes.map((code, index) => (
-                      <code
-                        key={index}
-                        className="text-sm font-mono text-gray-800 dark:text-gray-200"
-                      >
-                        {code}
-                      </code>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={copyBackupCodes}
-                  className="w-full py-2 mb-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                >
-                  Copy Codes
-                </button>
-                <p className="text-xs text-red-500 mb-4 text-center">
-                  Warning: Each backup code can only be used once. Store them securely!
-                </p>
-                <button
-                  onClick={closeModal}
-                  className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
-                >
-                  Done
-                </button>
-              </>
-            )}
+      <Modal
+        isOpen={showEnableModal}
+        onClose={closeModal}
+        title={
+          setupStep === "password" ? "Enable Two-Factor Authentication" :
+            setupStep === "qr" ? "Scan QR Code" :
+              setupStep === "verify" ? "Verify Setup" :
+                "Save Your Backup Codes"
+        }
+        description={
+          setupStep === "password" ? "Enter your password to continue setting up 2FA" :
+            setupStep === "qr" ? "Scan this QR code with your authenticator app" :
+              setupStep === "verify" ? "Enter the 6-digit code from your authenticator app" :
+                "Save these codes in a secure place"
+        }
+      >
+        {setupStep === "password" && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="2fa-password">Password</Label>
+              <Input
+                id="2fa-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+              />
+            </div>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleEnable2FA} disabled={isEnabling} className="flex-1">
+                <LoadingSwap isLoading={isEnabling}>Continue</LoadingSwap>
+              </Button>
+              <Button variant="outline" onClick={closeModal}>
+                Cancel
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {setupStep === "qr" && totpUri && (
+          <div className="space-y-4">
+            <div className="flex justify-center p-4 bg-white rounded-lg">
+              <QRCode value={totpUri} size={200} />
+            </div>
+            <p className="text-xs text-muted-foreground text-center break-all">
+              Can&apos;t scan? Enter this code manually: <br />
+              <code className="text-primary font-mono">{totpUri.split("secret=")[1]?.split("&")[0]}</code>
+            </p>
+            <Button onClick={() => setSetupStep("verify")} className="w-full">
+              I&apos;ve Scanned the Code
+            </Button>
+          </div>
+        )}
+
+        {setupStep === "verify" && (
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <InputOTP
+                maxLength={6}
+                value={verificationCode}
+                onChange={(value) => setVerificationCode(value)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            {error && <p className="text-destructive text-sm text-center">{error}</p>}
+            <div className="flex gap-3 pt-2">
+              <Button
+                onClick={handleVerifyTotp}
+                disabled={isEnabling || verificationCode.length !== 6}
+                className="flex-1"
+              >
+                <LoadingSwap isLoading={isEnabling}>Verify & Enable</LoadingSwap>
+              </Button>
+              <Button variant="outline" onClick={() => setSetupStep("qr")}>
+                Back
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {setupStep === "backup" && backupCodes && (
+          <div className="space-y-4">
+            <div className="bg-muted rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-2">
+                {backupCodes.map((code, index) => (
+                  <code key={index} className="text-sm font-mono">
+                    {code}
+                  </code>
+                ))}
+              </div>
+            </div>
+            <Button variant="outline" onClick={copyBackupCodes} className="w-full">
+              Copy Codes
+            </Button>
+            <p className="text-xs text-destructive text-center">
+              Warning: Each backup code can only be used once. Store them securely!
+            </p>
+            <Button onClick={closeModal} className="w-full">
+              Done
+            </Button>
+          </div>
+        )}
+      </Modal>
 
       {/* Disable 2FA Modal */}
-      {showDisableModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className=" rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Disable Two-Factor Authentication
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to disable 2FA? This will make your account less secure.
-            </p>
-            <input
+      <Modal
+        isOpen={showDisableModal}
+        onClose={closeModal}
+        title="Disable Two-Factor Authentication"
+        description="Are you sure you want to disable 2FA? This will make your account less secure."
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="disable-password">Password</Label>
+            <Input
+              id="disable-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white mb-4"
             />
-            {error && (
-              <p className="text-red-500 text-sm mb-4">{error}</p>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={handleDisable2FA}
-                disabled={isDisabling}
-                className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-lg transition-colors"
-              >
-                {isDisabling ? "Disabling..." : "Disable 2FA"}
-              </button>
-              <button
-                onClick={closeModal}
-                className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
+          </div>
+          {error && <p className="text-destructive text-sm">{error}</p>}
+          <div className="flex gap-3 pt-2">
+            <Button variant="destructive" onClick={handleDisable2FA} disabled={isDisabling} className="flex-1">
+              <LoadingSwap isLoading={isDisabling}>Disable 2FA</LoadingSwap>
+            </Button>
+            <Button variant="outline" onClick={closeModal}>
+              Cancel
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
     </main>
   );
 }
