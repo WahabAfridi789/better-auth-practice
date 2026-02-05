@@ -141,7 +141,7 @@ export function OrganizationSwitcher() {
                 <button
                   onClick={() => {
                     setIsOpen(false);
-                    router.push("/organizations/new");
+                    router.push("/dashboard/workspaces/new");
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >

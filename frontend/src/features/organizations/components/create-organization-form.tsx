@@ -72,8 +72,7 @@ export function CreateOrganizationForm() {
       if (result.error) {
         setError(result.error.message || "Failed to create organization");
       } else {
-        router.push("/organizations");
-        router.refresh();
+        router.push("/dashboard/workspaces");
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
